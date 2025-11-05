@@ -1,0 +1,33 @@
+# Smart MCP Server Dependencies
+
+# FastMCP Framework (latest v2.x)
+fastmcp>=2.0.0
+
+# Database Support
+sqlalchemy>=2.0.0
+# Database drivers (install as needed):
+# MySQL/MariaDB:
+pymysql>=1.1.0
+# PostgreSQL:
+psycopg2-binary>=2.9.9
+# SQL Server:
+pyodbc>=5.0.0
+# Oracle:
+# cx-oracle>=8.3.0  # Uncomment if using Oracle
+
+# LLM Integration
+openai>=1.12.0  # Works with OpenAI-compatible APIs
+anthropic>=0.18.0  # Optional: for Claude
+httpx>=0.27.0  # HTTP client
+
+# Configuration & Utilities
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
+pydantic>=2.6.0
+
+# Date parsing
+python-dateutil>=2.8.2
+
+# Logging & Development
+colorama>=0.4.6  # Colored terminal output
+
