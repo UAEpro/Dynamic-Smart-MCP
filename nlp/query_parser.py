@@ -99,14 +99,19 @@ class QueryParser:
             }
     
     def _build_prompt(self, natural_language: str) -> str:
-        """Build comprehensive prompt with schema and examples."""
+        """Build comprehensive prompt with schema, context, and examples."""
         schema_text = format_schema_for_llm(self.schema)
         examples_text = format_examples_for_llm()
         safety_rules = get_safety_rules()
         
+        # Add database context if available (improves query quality!)
+        context_text = self._build_database_context()
+        
         prompt = f"""Convert the following natural language question into a SQL query.
 
 {safety_rules}
+
+{context_text}
 
 {schema_text}
 
@@ -118,6 +123,56 @@ NATURAL LANGUAGE QUESTION:
 IMPORTANT: Return ONLY the SQL query, nothing else. No markdown, no explanations.
 """
         return prompt
+    
+    def _build_database_context(self) -> str:
+        """Build database context section from config (if available)."""
+        db_context = self.llm_config.get("database_context", {})
+        
+        if not db_context:
+            return ""
+        
+        context_parts = ["DATABASE CONTEXT:", "=" * 80]
+        
+        # Description
+        if "description" in db_context:
+            context_parts.append(f"Description: {db_context['description']}")
+        
+        # Domain
+        if "domain" in db_context:
+            context_parts.append(f"Domain: {db_context['domain']}")
+        
+        # Business concepts
+        if "business_concepts" in db_context:
+            context_parts.append("\nKey Concepts:")
+            for concept in db_context["business_concepts"]:
+                context_parts.append(f"  • {concept}")
+        
+        # Table documentation
+        if "tables" in db_context:
+            context_parts.append("\nTable Descriptions:")
+            for table_name, table_info in db_context["tables"].items():
+                desc = table_info.get("description", "")
+                notes = table_info.get("notes", "")
+                context_parts.append(f"  • {table_name}: {desc}")
+                if notes:
+                    context_parts.append(f"    ({notes})")
+        
+        # Data conventions
+        if "conventions" in db_context:
+            context_parts.append("\nData Conventions:")
+            for key, value in db_context["conventions"].items():
+                context_parts.append(f"  • {key}: {value}")
+        
+        # Common queries
+        if "common_queries" in db_context:
+            context_parts.append("\nCommon Use Cases:")
+            for query in db_context["common_queries"][:5]:  # Show first 5
+                context_parts.append(f"  • {query}")
+        
+        context_parts.append("=" * 80)
+        context_parts.append("")
+        
+        return "\n".join(context_parts)
     
     def _clean_sql(self, sql: str) -> str:
         """Clean and normalize SQL query."""

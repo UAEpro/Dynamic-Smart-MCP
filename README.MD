@@ -21,7 +21,8 @@ A production-ready [FastMCP 2](https://github.com/jlowin/fastmcp) server that co
 ## 📚 Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Get running in 5 minutes
-- **[PRODUCTION_SECURITY.md](PRODUCTION_SECURITY.md)** - 🔒 **Production security (CRITICAL)**
+- **[DATABASE_DOCUMENTATION_GUIDE.md](DATABASE_DOCUMENTATION_GUIDE.md)** - 📖 **Document your DB for better queries**
+- **[PRODUCTION_SECURITY.md](PRODUCTION_SECURITY.md)** - 🔒 Production security (CRITICAL)
 - **[MULTILINGUAL_GUIDE.md](MULTILINGUAL_GUIDE.md)** - 🌍 Arabic, Chinese, Spanish support
 - **[ANIME_ARABIC_EXAMPLES.md](ANIME_ARABIC_EXAMPLES.md)** - 🎌 Anime database with Arabic queries
 - **[ERROR_HANDLING_GUIDE.md](ERROR_HANDLING_GUIDE.md)** - 🛡️ How errors are handled safely

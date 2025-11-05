@@ -86,6 +86,11 @@ def initialize_llm(config: dict) -> dict:
     if os.getenv("LLM_TEMPERATURE"):
         llm_config["temperature"] = float(os.getenv("LLM_TEMPERATURE"))
     
+    # Add database context to LLM config (improves query quality)
+    if "database_context" in config:
+        llm_config["database_context"] = config["database_context"]
+        logger.info("Database context loaded - queries will be more accurate")
+    
     logger.info(f"LLM configured: {llm_config.get('provider')} / {llm_config.get('model')}")
     
     return llm_config

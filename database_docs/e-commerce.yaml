@@ -1,0 +1,97 @@
+# E-commerce Database Documentation Template
+# Copy this section to your config.yaml under 'database_context:'
+
+database_context:
+  description: "E-commerce platform with customers, products, orders, and inventory management"
+  
+  domain: "E-commerce / Online Retail"
+  
+  business_concepts:
+    - "Customers create accounts and place orders"
+    - "Orders contain multiple products (order items)"
+    - "Products belong to categories for organization"
+    - "Each order has a status tracking fulfillment"
+    - "Inventory is tracked per product (stock_quantity)"
+    - "Prices and totals are in USD currency"
+    - "Customer loyalty based on total spending and order count"
+    - "Orders have lifecycle: pending → shipped → completed"
+  
+  tables:
+    customers:
+      description: "Registered customer accounts"
+      notes: |
+        - is_active: 1 = active, 0 = inactive/deleted
+        - registration_date: Account creation date
+        - Customer value = total order amount
+      
+    products:
+      description: "Product catalog with pricing"
+      notes: |
+        - price: Unit price in USD
+        - stock_quantity: Available inventory
+        - category_id: Links to categories table
+        - 0 stock = out of stock, not available
+      
+    categories:
+      description: "Product categories for organization"
+      notes: "Examples: Electronics, Clothing, Books, Home & Garden"
+      
+    orders:
+      description: "Customer purchase orders"
+      notes: |
+        - status: 'pending', 'shipped', 'completed', 'cancelled'
+        - total_amount: Order total in USD
+        - order_date: When order was placed
+        - customer_id: Who placed the order
+      
+    order_items:
+      description: "Line items within orders"
+      notes: |
+        - quantity: Number of units ordered
+        - unit_price: Price per unit at time of purchase (may differ from current product.price)
+        - Links order to product
+  
+  common_queries:
+    - "Find top-selling products"
+    - "Calculate revenue by time period (daily/monthly/yearly)"
+    - "Identify high-value customers"
+    - "Track order status and fulfillment"
+    - "Find low stock or out-of-stock products"
+    - "Analyze sales by product category"
+    - "Identify inactive customers (no recent orders)"
+    - "Calculate average order value"
+    - "Find most popular categories"
+    - "Show pending orders requiring fulfillment"
+  
+  conventions:
+    dates: "YYYY-MM-DD format (e.g., '2023-10-15')"
+    currency: "All amounts in USD (dollars)"
+    status_values: "Lowercase: 'pending', 'shipped', 'completed', 'cancelled'"
+    boolean_fields: "1 = true/active, 0 = false/inactive"
+    null_handling: "NULL in optional fields (phone, address2)"
+    revenue_calculation: "SUM(quantity * unit_price) from order_items"
+    customer_value: "SUM(total_amount) from customer's orders"
+    
+  metrics:
+    top_customers: "Ranked by total order value or order count"
+    top_products: "Ranked by quantity sold or revenue generated"
+    revenue: "Sum of all completed order totals"
+    active_customers: "Customers with orders in last 90 days"
+    conversion_rate: "Orders / Total customers"
+    average_order_value: "AVG(total_amount) from orders"
+    
+  example_queries:
+    english:
+      - "Show me top 10 customers by total spending"
+      - "What products are low in stock?"
+      - "Calculate total revenue for last month"
+      - "Find pending orders"
+      - "Show me bestselling products in Electronics"
+      
+    arabic:
+      - "أظهر لي أفضل 10 عملاء من حيث الإنفاق الإجمالي"
+      - "ما هي المنتجات المنخفضة في المخزون؟"
+      - "احسب إجمالي الإيرادات للشهر الماضي"
+      - "أظهر لي الطلبات المعلقة"
+      - "أرني المنتجات الأكثر مبيعاً في الإلكترونيات"
+

@@ -1,0 +1,112 @@
+# Anime Database Documentation Template
+# Copy this section to your config.yaml under 'database_context:'
+
+database_context:
+  # What this database contains
+  description: "Comprehensive anime catalog with titles, studios, genres, characters, ratings, and episode information"
+  
+  # Domain helps LLM understand terminology
+  domain: "Entertainment / Japanese Animation (Anime & Manga)"
+  
+  # Core business concepts - how your data relates
+  business_concepts:
+    - "Anime series are produced by animation studios"
+    - "Each anime can belong to multiple genres (Action, Romance, Fantasy, etc.)"
+    - "Anime have ratings (0-10 scale) based on user reviews"
+    - "Episode count indicates series length (1 = movie, 12-24 = season, 100+ = long-running)"
+    - "Status shows if anime is Completed, Ongoing, or Upcoming"
+    - "Characters appear in one or more anime series"
+    - "Main characters are marked differently from supporting characters"
+    - "Release year indicates when anime first aired"
+  
+  # Detailed table descriptions
+  tables:
+    anime:
+      description: "Main anime titles with core metadata"
+      notes: |
+        - rating: 0-10 scale (8.0+ is considered excellent)
+        - episodes: Total episode count (1 = movie)
+        - status: 'Completed', 'Ongoing', 'Upcoming'
+        - release_year: Year anime first aired
+        - title_japanese: Original Japanese title
+      
+    studios:
+      description: "Animation studios that produce anime"
+      notes: |
+        - Famous studios: Studio Ghibli, Kyoto Animation, Madhouse
+        - founded_year: When studio was established
+        - country: Usually Japan
+      
+    genres:
+      description: "Genre classifications for anime"
+      notes: |
+        - Common genres: Action, Adventure, Comedy, Drama, Fantasy, Romance, Sci-Fi, Slice of Life, Thriller
+        - Multiple genres per anime (junction table: anime_genres)
+      
+    anime_genres:
+      description: "Links anime to their genres (many-to-many relationship)"
+      notes: "An anime can have multiple genres"
+      
+    characters:
+      description: "Anime characters with basic info"
+      notes: |
+        - role: 'Protagonist', 'Deuteragonist', 'Antagonist', 'Supporting'
+        - name_japanese: Original Japanese name
+        - age: Character age (NULL if unknown/ageless)
+      
+    character_anime:
+      description: "Links characters to anime they appear in"
+      notes: |
+        - is_main_character: 1 = main cast, 0 = supporting
+        - Characters can appear in multiple anime
+  
+  # Common use cases - helps LLM understand typical questions
+  common_queries:
+    - "Find top-rated anime (rating > 8.5)"
+    - "Show anime by specific studio (Studio Ghibli, etc.)"
+    - "List anime in a genre (Action, Romance, etc.)"
+    - "Find long-running anime (100+ episodes)"
+    - "Search for anime by year or date range"
+    - "Identify ongoing vs completed series"
+    - "Show anime with specific characters"
+    - "Find anime with multiple genres"
+    - "Calculate studio statistics (avg rating, total anime)"
+    - "Discover hidden gems (high rating, low episode count)"
+  
+  # Data conventions - how to interpret values
+  conventions:
+    dates: "release_year is YYYY format (integer)"
+    ratings: "Scale 0.0 to 10.0 (float), 8.0+ is excellent, 7.0+ is good"
+    status_values: "Capitalized: 'Completed', 'Ongoing', 'Upcoming'"
+    episodes: "1 = movie, 12-13 = short series, 24-26 = full season, 50+ = long series"
+    null_handling: "NULL age means unknown/not applicable"
+    text_encoding: "UTF-8 for Japanese characters"
+    genre_logic: "Use JOIN with anime_genres for genre filtering"
+    popularity: "Measured by rating (higher is more popular)"
+  
+  # Domain-specific terminology
+  terminology:
+    shonen: "Anime targeted at young male audience (Action-heavy)"
+    shoujo: "Anime targeted at young female audience (Romance-heavy)"
+    seinen: "Anime for adult men (mature themes)"
+    josei: "Anime for adult women (realistic romance)"
+    isekai: "Fantasy genre where character transported to another world"
+    mecha: "Giant robots/mechanical suits"
+    slice_of_life: "Everyday life situations"
+    
+  # Example queries that work well
+  example_queries:
+    english:
+      - "Show me all anime from Studio Ghibli"
+      - "What are the top 5 highest rated anime?"
+      - "List action anime with more than 20 episodes"
+      - "Find anime from 2020 or newer"
+      - "Show me ongoing anime series"
+      
+    arabic:
+      - "أظهر لي جميع الأنمي من استوديو غيبلي"
+      - "ما هي أفضل 5 أنمي من حيث التقييم؟"
+      - "اعرض أنمي الأكشن التي لديها أكثر من 20 حلقة"
+      - "أظهر لي الأنمي من 2020 أو أحدث"
+      - "أرني الأنمي المستمرة حالياً"
+
