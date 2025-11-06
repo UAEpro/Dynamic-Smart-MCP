@@ -165,7 +165,7 @@ python main.py
 
 ## Next Steps
 
-- Read `README.md` for detailed documentation
+- Read documentation in `docs/` folder (start with 01, 02, 03...)
 - Check `config.yaml` for all configuration options
 - Explore the code in `db/`, `nlp/`, `mcp/`, and `utils/`
 - Customize prompts in `nlp/query_parser.py`

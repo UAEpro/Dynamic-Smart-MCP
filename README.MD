@@ -20,14 +20,21 @@ A production-ready [FastMCP 2](https://github.com/jlowin/fastmcp) server that co
 
 ## 📚 Documentation
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Get running in 5 minutes
-- **[DATABASE_DOCUMENTATION_GUIDE.md](DATABASE_DOCUMENTATION_GUIDE.md)** - 📖 **Document your DB for better queries**
-- **[PRODUCTION_SECURITY.md](PRODUCTION_SECURITY.md)** - 🔒 Production security (CRITICAL)
-- **[MULTILINGUAL_GUIDE.md](MULTILINGUAL_GUIDE.md)** - 🌍 Arabic, Chinese, Spanish support
-- **[ANIME_ARABIC_EXAMPLES.md](ANIME_ARABIC_EXAMPLES.md)** - 🎌 Anime database with Arabic queries
-- **[ERROR_HANDLING_GUIDE.md](ERROR_HANDLING_GUIDE.md)** - 🛡️ How errors are handled safely
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Deep dive into system design
-- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Complete project overview
+**All documentation is organized in the [docs/](docs/) folder with priority numbers for easy reading order.**
+
+### Quick Links:
+- **[docs/00_READ_ME_FIRST.md](docs/00_READ_ME_FIRST.md)** - 📖 **Start here!**
+- **[docs/01_QUICKSTART.md](docs/01_QUICKSTART.md)** - 🚀 Get running in 5 minutes
+- **[docs/02_DATABASE_DOCUMENTATION_GUIDE.md](docs/02_DATABASE_DOCUMENTATION_GUIDE.md)** - Document your DB for better queries
+- **[docs/03_PRODUCTION_SECURITY.md](docs/03_PRODUCTION_SECURITY.md)** - 🔒 **Security guide (CRITICAL)**
+
+**→ See [docs/00_READ_ME_FIRST.md](docs/00_READ_ME_FIRST.md) for complete reading order**
+
+### 📌 First Time Setup:
+Run this to organize all documentation:
+```bash
+python organize_docs.py
+```
 
 ---
 
