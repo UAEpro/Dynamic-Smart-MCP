@@ -34,13 +34,20 @@ logger = logging.getLogger(__name__)
 def load_config(config_path: str = "config.yaml") -> dict:
     """Load configuration from YAML file."""
     try:
+
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Make config_path absolute if it's relative
+        if not os.path.isabs(config_path):
+            config_path = os.path.join(script_dir, config_path)
+
         # Load main config
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         logger.info(f"Configuration loaded from {config_path}")
 
         # Check for external schema file
-        schema_path = "database_schema.yaml"
+        schema_path = os.path.join(script_dir, "database_schema.yaml")
         if os.path.exists(schema_path):
             try:
                 with open(schema_path, 'r') as f:
@@ -162,7 +169,8 @@ def main():
         
         # Run the server
         mcp.run()
-        
+        # mcp.run(transport='http', port=8765)
+
     except KeyboardInterrupt:
         logger.info("\nShutting down gracefully...")
     except Exception as e:

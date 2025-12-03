@@ -27,7 +27,7 @@ class QueryParser:
         self.schema = schema
         
         # Initialize OpenAI client (works with compatible APIs)
-        api_key = llm_config.get("api_key", "")
+        api_key = llm_config.get("api_key_env", "")
         api_base = llm_config.get("api_base")
         
         client_kwargs = {"api_key": api_key}

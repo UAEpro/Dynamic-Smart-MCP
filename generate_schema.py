@@ -40,14 +40,14 @@ def initialize_llm(config: dict) -> tuple:
     # Get API key from environment
     load_dotenv()
     api_key_env = llm_config.get("api_key_env", "LLM_API_KEY")
-    api_key = os.getenv(api_key_env)
-
-    if not api_key:
-        logger.error(f"No API key found in {api_key_env}")
-        sys.exit(1)
+    # api_key = os.getenv(api_key_env)
+    #
+    # if not api_key:
+    #     logger.error(f"No API key found in {api_key_env}")
+    #     sys.exit(1)
 
     api_base = llm_config.get("api_base")
-    client_kwargs = {"api_key": api_key}
+    client_kwargs = {"api_key": api_key_env}
     if api_base:
         client_kwargs["base_url"] = api_base
 

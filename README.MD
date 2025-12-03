@@ -30,36 +30,45 @@ A production-ready [FastMCP 2](https://github.com/jlowin/fastmcp) server that co
 
 **→ See [docs/00_READ_ME_FIRST.md](docs/00_READ_ME_FIRST.md) for complete reading order**
 
-### 📌 First Time Setup:
-Run this to organize all documentation:
-```bash
-python organize_docs.py
-```
-
 ---
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### 1. Crate Environment
+```bash
+python3 -m venv .venv
+```
+#### On Linux/Mac:
+```bash
+source .venv/bin/activate
+```
+##### On Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+
+### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Create Sample Database
+### 3. Edit config.yaml with LLM connector and Database Connector
+you can also setup the key from .env file
+
+### 4. Run the automatic database Schema generator
 ```bash
-python example_database.py
+python generate_schema.py
 ```
 
-### 3. Set LLM API Key
-Create a `.env` file:
-```env
-LLM_API_KEY=your_openwebui_or_openai_api_key_here
-```
-
-### 4. Run the Server
+### 5. Run the Server
 ```bash
 python main.py
 ```
+
+you might need to edit the main.py in the main function to change the MCP starting protocol
+
 
 ---
 
@@ -128,4 +137,4 @@ MIT License - Free to use, modify, and distribute!
 
 ---
 
-**Built with ❤️ for the MCP community**
+**Built with ❤️ and AI :P for the MCP community**
