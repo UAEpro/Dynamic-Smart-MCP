@@ -17,58 +17,10 @@ database:
   # Maximum rows to return in a single query (safety limit)
   max_rows: 1000
 
-# Database Documentation (IMPROVES QUERY QUALITY!)
-# Providing context helps the LLM understand your data and generate better SQL
-database_context:
-  # General description of what this database contains
-  description: "E-commerce database containing customer orders and product information"
-  
-  # Domain/Industry (helps LLM understand terminology)
-  domain: "E-commerce / Retail"
-  
-  # Key business concepts (helps LLM understand relationships)
-  business_concepts:
-    - "Customers place orders for products"
-    - "Products belong to categories"
-    - "Orders contain multiple items"
-    - "Each order has a total amount and status"
-  
-  # Table descriptions (what each table represents)
-  tables:
-    customers:
-      description: "Customer accounts and contact information"
-      notes: "Contains both active and inactive customers"
-      
-    products:
-      description: "Product catalog with pricing and inventory"
-      notes: "Prices are in USD, stock_quantity shows available inventory"
-      
-    orders:
-      description: "Customer purchase orders"
-      notes: "Status can be: pending, completed, shipped, cancelled"
-      
-    order_items:
-      description: "Individual items within each order"
-      notes: "Links orders to products with quantity and price at time of purchase"
-      
-    categories:
-      description: "Product categories for organization"
-      notes: "Used to group related products"
-  
-  # Common queries/use cases (helps LLM understand typical questions)
-  common_queries:
-    - "Find top selling products"
-    - "Calculate total revenue by time period"
-    - "Identify inactive customers"
-    - "Track order status and fulfillment"
-    - "Analyze product category performance"
-  
-  # Data conventions (helps LLM interpret data correctly)
-  conventions:
-    dates: "All dates in YYYY-MM-DD format"
-    currency: "Prices and amounts in USD"
-    status_values: "Lowercase (e.g., 'completed', 'pending')"
-    null_handling: "NULL indicates missing or not applicable"
+# Database Documentation
+# NOTE: To improve query accuracy, run 'python generate_schema.py'
+# This will create 'database_schema.yaml' which is automatically loaded.
+# The internal 'database_context' section has been moved to that file.
 
 # LLM Configuration for Natural Language to SQL
 llm:
@@ -146,4 +98,3 @@ server:
   
   # Logging level: DEBUG, INFO, WARNING, ERROR
   log_level: "INFO"
-

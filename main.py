@@ -14,7 +14,7 @@ from fastmcp import FastMCP
 # Import our modules
 from db.adapter import DatabaseAdapter
 from nlp.query_parser import QueryParser
-from mcp.tools import register_tools
+from mcp_server.tools import register_tools
 
 # Load environment variables
 load_dotenv()
@@ -24,7 +24,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(sys.stdout),
+        logging.StreamHandler(sys.stderr),
         logging.FileHandler('smart-mcp.log')
     ]
 )
@@ -34,9 +34,25 @@ logger = logging.getLogger(__name__)
 def load_config(config_path: str = "config.yaml") -> dict:
     """Load configuration from YAML file."""
     try:
+        # Load main config
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         logger.info(f"Configuration loaded from {config_path}")
+
+        # Check for external schema file
+        schema_path = "database_schema.yaml"
+        if os.path.exists(schema_path):
+            try:
+                with open(schema_path, 'r') as f:
+                    schema_context = yaml.safe_load(f)
+
+                # Merge into config
+                if schema_context:
+                    config["database_context"] = schema_context
+                    logger.info(f"Loaded external database schema from {schema_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load {schema_path}: {e}")
+
         return config
     except FileNotFoundError:
         logger.error(f"Config file not found: {config_path}")
