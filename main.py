@@ -14,7 +14,7 @@ from fastmcp import FastMCP
 # Import our modules
 from db.adapter import DatabaseAdapter
 from nlp.query_parser import QueryParser
-from mcp.tools import register_tools
+from mcp_server.tools import register_tools
 
 # Load environment variables
 load_dotenv()
@@ -24,7 +24,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(sys.stdout),
+        logging.StreamHandler(sys.stderr),
         logging.FileHandler('smart-mcp.log')
     ]
 )

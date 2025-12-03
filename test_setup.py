@@ -61,7 +61,7 @@ def main():
     project_modules = [
         "db.adapter",
         "nlp.query_parser",
-        "mcp.tools",
+        "mcp_server.tools",
         "utils.schema",
     ]
     
