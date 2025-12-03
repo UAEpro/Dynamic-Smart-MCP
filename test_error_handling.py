@@ -210,27 +210,27 @@ def main():
     print("This script demonstrates what happens when you query")
     print("a column that doesn't exist in your database.")
     print()
-    input("Press Enter to start tests...")
+    # input("Press Enter to start tests...")
     print()
     
     # Create test database
     create_test_database()
-    input("Press Enter to continue...")
+    # input("Press Enter to continue...")
     print()
     
     # Test 1: Existing column
     test_column_exists()
-    input("Press Enter to continue...")
+    # input("Press Enter to continue...")
     print()
     
     # Test 2: Missing column
     test_column_missing()
-    input("Press Enter to continue...")
+    # input("Press Enter to continue...")
     print()
     
     # Test 3: Show available columns
     show_available_columns()
-    input("Press Enter to continue...")
+    # input("Press Enter to continue...")
     print()
     
     # Test 4: Show correct queries
