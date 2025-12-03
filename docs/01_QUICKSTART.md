@@ -3,6 +3,20 @@
 Get Smart MCP Server running in 5 minutes!
 
 ---
+## Step 0: Crate Environment
+```bash
+python3 -m venv .venv
+```
+### On Linux/Mac:
+```bash
+source .venv/bin/activate
+```
+### On Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
 
 ## Step 1: Install Dependencies (1 min)
 
@@ -12,13 +26,13 @@ pip install -r requirements.txt
 
 ---
 
-## Step 2: Create Sample Database (30 seconds)
+## Step 2: Run the automatic database Schema generator (30 seconds)
 
 ```bash
-python example_database.py
+python generate_schema.py
 ```
 
-This creates `example.db` with sample customers, products, and orders.
+This creates `database_schema.yaml` you can edit it to get the maximum value from the script.
 
 ---
 
@@ -39,6 +53,7 @@ Your `.env` should look like:
 ```env
 LLM_API_KEY=sk-your-actual-key-here
 ```
+or you could just edit the config.yaml if this was a single project
 
 ---
 
@@ -52,7 +67,7 @@ If using **OpenAI** instead of OpenWebUI, edit `config.yaml`:
 llm:
   provider: "openai"
   api_base: "https://api.openai.com/v1"
-  model: "gpt-3.5-turbo"
+  model: "gpt-5.1"
 ```
 
 ---
