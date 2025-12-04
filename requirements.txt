@@ -31,3 +31,5 @@ python-dateutil>=2.8.2
 # Logging & Development
 colorama>=0.4.6  # Colored terminal output
 
+# API Mode Dependencies
+requests>=2.31.0

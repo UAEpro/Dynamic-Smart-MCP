@@ -1,12 +1,11 @@
 """
 Smart MCP Server - Main Entry Point
-FastMCP 2 server with intelligent database querying via natural language.
+FastMCP 2 server with intelligent database querying and API interaction.
 """
 
 import os
 import sys
 import logging
-from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 from fastmcp import FastMCP
@@ -15,6 +14,10 @@ from fastmcp import FastMCP
 from db.adapter import DatabaseAdapter
 from nlp.query_parser import QueryParser
 from mcp_server.tools import register_tools
+
+from api.adapter import APIAdapter
+from nlp.api_request_parser import APIRequestParser
+from mcp_server.api_tools import register_api_tools
 
 # Load environment variables
 load_dotenv()
@@ -34,7 +37,6 @@ logger = logging.getLogger(__name__)
 def load_config(config_path: str = "config.yaml") -> dict:
     """Load configuration from YAML file."""
     try:
-
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
         # Make config_path absolute if it's relative
@@ -46,8 +48,11 @@ def load_config(config_path: str = "config.yaml") -> dict:
             config = yaml.safe_load(f)
         logger.info(f"Configuration loaded from {config_path}")
 
-        # Check for external schema file
-        schema_path = os.path.join(script_dir, "database_schema.yaml")
+        # Determine Schema File to load based on Mode
+        mode = config.get("mode", "database")
+        schema_file = "database_schema.yaml" if mode == "database" else "api_schema.yaml"
+        schema_path = os.path.join(script_dir, schema_file)
+
         if os.path.exists(schema_path):
             try:
                 with open(schema_path, 'r') as f:
@@ -55,8 +60,10 @@ def load_config(config_path: str = "config.yaml") -> dict:
 
                 # Merge into config
                 if schema_context:
-                    config["database_context"] = schema_context
-                    logger.info(f"Loaded external database schema from {schema_path}")
+                    # We store it under a generic key 'context' but keep legacy support for 'database_context'
+                    config["database_context"] = schema_context # Legacy support
+                    config["schema_context"] = schema_context   # New generic key
+                    logger.info(f"Loaded external schema from {schema_path}")
             except Exception as e:
                 logger.warning(f"Failed to load {schema_path}: {e}")
 
@@ -88,6 +95,22 @@ def initialize_database(config: dict) -> DatabaseAdapter:
     
     return adapter
 
+def initialize_api(config: dict) -> APIAdapter:
+    """Initialize and connect to API."""
+    api_config = config.get("api", {})
+
+    spec_source = os.getenv("API_SPEC_URL") or api_config.get("spec_source")
+
+    if not spec_source:
+        raise ValueError("No API spec source provided (api.spec_source or API_SPEC_URL)")
+
+    logger.info(f"Loading API Spec from: {spec_source}")
+
+    adapter = APIAdapter(spec_source, api_config.get("auth"))
+    adapter.load_spec()
+
+    return adapter
+
 
 def initialize_llm(config: dict) -> dict:
     """Prepare LLM configuration with API key from environment."""
@@ -109,19 +132,23 @@ def initialize_llm(config: dict) -> dict:
     if os.getenv("LLM_TEMPERATURE"):
         llm_config["temperature"] = float(os.getenv("LLM_TEMPERATURE"))
     
-    # Add database context to LLM config (improves query quality)
-    if "database_context" in config:
+    # Add context to LLM config
+    if "schema_context" in config:
+        llm_config["database_context"] = config["schema_context"] # Using legacy key for compatibility
+        logger.info("Schema context loaded")
+    elif "database_context" in config:
         llm_config["database_context"] = config["database_context"]
-        logger.info("Database context loaded - queries will be more accurate")
+        logger.info("Database context loaded")
     
     logger.info(f"LLM configured: {llm_config.get('provider')} / {llm_config.get('model')}")
     
     return llm_config
 
 
-def create_server(config: dict, db_adapter: DatabaseAdapter, query_parser: QueryParser) -> FastMCP:
+def create_server(config: dict, adapter, parser) -> FastMCP:
     """Create and configure FastMCP server."""
     server_config = config.get("server", {})
+    mode = config.get("mode", "database")
     
     # Initialize FastMCP server
     mcp = FastMCP(
@@ -129,17 +156,24 @@ def create_server(config: dict, db_adapter: DatabaseAdapter, query_parser: Query
         version=server_config.get("version", "1.0.0"),
     )
     
-    logger.info(f"FastMCP server created: {mcp.name} v{mcp.version}")
+    logger.info(f"FastMCP server created: {mcp.name} v{mcp.version} (Mode: {mode.upper()})")
     
-    # Register tools
-    register_tools(mcp, db_adapter, query_parser, config)
-    logger.info("All tools registered successfully")
+    # Register tools based on mode
+    if mode == "database":
+        register_tools(mcp, adapter, parser, config)
+    elif mode == "api":
+        register_api_tools(mcp, adapter, parser, config)
+    else:
+        raise ValueError(f"Unknown mode: {mode}")
+
+    logger.info("Tools registered successfully")
     
     return mcp
 
 
 def main():
     """Main entry point for Smart MCP Server."""
+    adapter = None
     try:
         logger.info("=" * 80)
         logger.info("Starting Smart MCP Server")
@@ -147,29 +181,43 @@ def main():
         
         # Load configuration
         config = load_config()
-        
-        # Initialize database
-        db_adapter = initialize_database(config)
+        mode = config.get("mode", "database")
         
         # Initialize LLM configuration
         llm_config = initialize_llm(config)
         
-        # Initialize query parser
-        schema = db_adapter.get_schema()
-        query_parser = QueryParser(llm_config, schema)
+        if mode == "database":
+            # Database Mode
+            adapter = initialize_database(config)
+            schema = adapter.get_schema()
+            parser = QueryParser(llm_config, schema)
+
+            logger.info(f"Connected to: {adapter.schema_cache.get('database_type', 'Unknown')}")
+            logger.info(f"Tables found: {len(adapter.schema_cache.get('tables', {}))}")
+
+        elif mode == "api":
+            # API Mode
+            adapter = initialize_api(config)
+            schema = adapter.get_schema()
+            unsafe_mode = config.get("api", {}).get("unsafe_mode", False)
+            parser = APIRequestParser(llm_config, schema, unsafe_mode=unsafe_mode)
+
+            logger.info(f"Loaded API: {schema.get('info', {}).get('title', 'Unknown')}")
+            logger.info(f"Endpoints found: {len(schema.get('paths', {}))}")
+
+        else:
+            logger.error(f"Invalid mode specified in config: {mode}")
+            sys.exit(1)
         
         # Create MCP server
-        mcp = create_server(config, db_adapter, query_parser)
+        mcp = create_server(config, adapter, parser)
         
         logger.info("=" * 80)
         logger.info("Smart MCP Server is ready!")
-        logger.info(f"Connected to: {db_adapter.schema_cache.get('database_type', 'Unknown')}")
-        logger.info(f"Tables found: {len(db_adapter.schema_cache.get('tables', {}))}")
         logger.info("=" * 80)
         
         # Run the server
         mcp.run()
-        # mcp.run(transport='http', port=8765)
 
     except KeyboardInterrupt:
         logger.info("\nShutting down gracefully...")
@@ -178,12 +226,12 @@ def main():
         sys.exit(1)
     finally:
         # Cleanup
-        try:
-            db_adapter.close()
-        except:
-            pass
+        if adapter and hasattr(adapter, 'close'):
+            try:
+                adapter.close()
+            except:
+                pass
 
 
 if __name__ == "__main__":
     main()
-
