@@ -37,22 +37,24 @@ def initialize_llm(config: dict) -> tuple:
     """Initialize OpenAI client and get model info."""
     llm_config = config.get("llm", {})
 
-    # Get API key from environment
+    # Load .env first (takes priority)
     load_dotenv()
-    api_key_env = llm_config.get("api_key_env", "LLM_API_KEY")
-    # api_key = os.getenv(api_key_env)
-    #
-    # if not api_key:
-    #     logger.error(f"No API key found in {api_key_env}")
-    #     sys.exit(1)
 
-    api_base = llm_config.get("api_base")
-    client_kwargs = {"api_key": api_key_env}
+    # Priority: .env -> config.yaml
+    api_key = os.getenv("LLM_API_KEY") or llm_config.get("api_key_env")
+
+    if not api_key:
+        logger.error("No API key found in .env (LLM_API_KEY) or config.yaml (llm.api_key_env)")
+        sys.exit(1)
+
+    api_base = os.getenv("LLM_API_BASE") or llm_config.get("api_base")
+    model = os.getenv("LLM_MODEL") or llm_config.get("model") or "gpt-3.5-turbo"
+    
+    client_kwargs = {"api_key": api_key}
     if api_base:
         client_kwargs["base_url"] = api_base
 
     client = OpenAI(**client_kwargs)
-    model = llm_config.get("model", "gpt-3.5-turbo")
 
     return client, model
 

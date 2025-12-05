@@ -23,21 +23,24 @@ class QueryParser:
             llm_config: LLM settings from config.yaml
             schema: Database schema from DatabaseAdapter
         """
+        import os
+        
         self.llm_config = llm_config
         self.schema = schema
         
         # Initialize OpenAI client (works with compatible APIs)
-        api_key = llm_config.get("api_key_env", "")
-        api_base = llm_config.get("api_base")
+        # Priority: .env -> config.yaml
+        api_key = os.getenv("LLM_API_KEY") or llm_config.get("api_key_env")
+        api_base = os.getenv("LLM_API_BASE") or llm_config.get("api_base")
         
         client_kwargs = {"api_key": api_key}
         if api_base:
             client_kwargs["base_url"] = api_base
         
         self.client = OpenAI(**client_kwargs)
-        self.model = llm_config.get("model", "gpt-3.5-turbo")
-        self.temperature = llm_config.get("temperature", 0.0)
-        self.max_tokens = llm_config.get("max_tokens", 500)
+        self.model = os.getenv("LLM_MODEL") or llm_config.get("model") or "gpt-3.5-turbo"
+        self.temperature = float(os.getenv("LLM_TEMPERATURE") or llm_config.get("temperature") or 0.0)
+        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS") or llm_config.get("max_tokens") or 500)
         
         logger.info(f"Query parser initialized with model: {self.model}")
     
