@@ -1,6 +1,6 @@
 """
-Database Schema Generator
-Inspects the database and uses LLM to generate a rich schema description YAML.
+API Schema Generator
+Inspects the OpenAPI spec and uses LLM to generate a rich schema description YAML.
 """
 
 import os
@@ -14,8 +14,7 @@ from openai import OpenAI
 # Ensure we can import from local modules
 sys.path.append(os.getcwd())
 
-from db.adapter import DatabaseAdapter
-from utils.schema import schema_to_json
+from api.adapter import APIAdapter
 
 # Configure logging
 logging.basicConfig(
@@ -37,9 +36,8 @@ def initialize_llm(config: dict) -> tuple:
     """Initialize OpenAI client and get model info."""
     llm_config = config.get("llm", {})
 
-    # Load .env first (takes priority)
     load_dotenv()
-
+    
     # Priority: .env -> config.yaml
     api_key = os.getenv("LLM_API_KEY") or llm_config.get("api_key_env")
 
@@ -58,49 +56,61 @@ def initialize_llm(config: dict) -> tuple:
 
     return client, model
 
-def generate_schema_description(client, model, db_schema: dict) -> str:
+def generate_api_description(client, model, api_spec: dict) -> str:
     """Generate YAML schema description using LLM."""
 
-    # Prepare prompt with raw schema
+    # Simplify spec for prompt (remove heavy schemas/definitions if too large)
+    # Ideally, we want the paths and summaries.
+    simple_spec = {
+        "info": api_spec.get("info"),
+        "paths": {}
+    }
+
+    # Copy paths but remove deep details to save context
+    for path, methods in api_spec.get("paths", {}).items():
+        simple_spec["paths"][path] = {}
+        for method, details in methods.items():
+            simple_spec["paths"][path][method] = {
+                "summary": details.get("summary"),
+                "description": details.get("description"),
+                "operationId": details.get("operationId")
+            }
+
     prompt = f"""
-You are an expert database architect. I will provide you with a raw database schema (tables, columns, foreign keys, and sample data).
-Your task is to analyze this schema and generate a high-quality, documentation-style YAML description of the database.
+You are an expert API architect. I will provide you with an OpenAPI specification summary.
+Your task is to analyze this API and generate a high-quality, documentation-style YAML description.
 
 The output YAML must follow this exact structure:
 
-description: "A short summary of what this database contains."
-domain: "The industry or domain (e.g., E-commerce, Finance, Healthcare)."
+description: "A short summary of what this API does."
+domain: "The industry or domain (e.g., E-commerce, Weather, Finance)."
 business_concepts:
   - "Key concept 1"
   - "Key concept 2"
-tables:
-  table_name:
-    description: "What this table stores."
-    notes: "Any specific details, constraints, or usage notes."
-common_queries:
-  - "Example natural language query 1"
-  - "Example natural language query 2"
-conventions:
-  dates: "Date format used"
-  currency: "Currency used (if applicable)"
+endpoints:
+  /path/example:
+    description: "What this endpoint does."
+    usage: "When to use this endpoint."
+common_tasks:
+  - "Example natural language task 1"
+  - "Example natural language task 2"
 
-RAW SCHEMA:
-{json.dumps(db_schema, indent=2, default=str)}
+RAW SPECIFICATION:
+{json.dumps(simple_spec, indent=2)}
 
 IMPORTANT:
-1. Infer the domain and business concepts from the table names and data.
+1. Infer the domain and business concepts.
 2. Write clear, human-readable descriptions.
-3. Return ONLY the YAML content. Do not include markdown code blocks (```yaml).
-4. Ensure the YAML is valid.
+3. Return ONLY the YAML content. Do not include markdown code blocks.
 """
 
-    logger.info("Sending schema to LLM for analysis...")
+    logger.info("Sending API spec to LLM for analysis...")
 
     try:
         response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "You are a helpful database documentation assistant."},
+                {"role": "system", "content": "You are a helpful API documentation assistant."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.0
@@ -108,7 +118,7 @@ IMPORTANT:
 
         content = response.choices[0].message.content.strip()
 
-        # Clean up if LLM added markdown blocks
+        # Clean up
         if content.startswith("```yaml"):
             content = content.replace("```yaml", "", 1)
         if content.startswith("```"):
@@ -124,42 +134,37 @@ IMPORTANT:
 
 def main():
     print("=" * 60)
-    print("🤖 Smart Database Schema Generator")
+    print("🤖 Smart API Schema Generator")
     print("=" * 60)
 
-    # Load config
     config = load_config()
 
-    # Connect to DB
-    print("\n1. Connecting to database...")
-    db_config = config.get("database", {})
-    conn_str = os.getenv("DATABASE_URL") or db_config.get("connection_string")
+    # Get API Config
+    api_config = config.get("api", {})
+    spec_source = os.getenv("API_SPEC_URL") or api_config.get("spec_source")
 
-    if not conn_str:
-        logger.error("No connection string found.")
+    if not spec_source:
+        logger.error("No API spec source found (api.spec_source or API_SPEC_URL).")
         sys.exit(1)
 
-    adapter = DatabaseAdapter(conn_str)
+    print(f"\n1. Loading API spec from {spec_source}...")
+    adapter = APIAdapter(spec_source)
     try:
-        adapter.connect()
+        adapter.load_spec()
     except Exception:
         sys.exit(1)
 
-    # Get schema
-    print("2. extracting schema and sample data...")
-    raw_schema = adapter.get_schema()
+    raw_spec = adapter.get_schema()
 
-    # Initialize LLM
-    print("3. Initializing LLM...")
+    print("2. Initializing LLM...")
     client, model = initialize_llm(config)
 
-    # Generate description
-    print(f"4. Generating documentation using {model}...")
-    yaml_content = generate_schema_description(client, model, raw_schema)
+    print(f"3. Generating documentation using {model}...")
+    yaml_content = generate_api_description(client, model, raw_spec)
 
     # Validate YAML
     try:
-        parsed_yaml = yaml.safe_load(yaml_content)
+        yaml.safe_load(yaml_content)
         print("✅ Generated valid YAML")
     except yaml.YAMLError as e:
         logger.error(f"Generated invalid YAML: {e}")
@@ -167,18 +172,16 @@ def main():
         print(yaml_content)
         sys.exit(1)
 
-    # Save to file
-    output_file = "database_schema.yaml"
-    print(f"\n5. Saving to {output_file}...")
+    output_file = "api_schema.yaml"
+    print(f"\n4. Saving to {output_file}...")
 
     with open(output_file, 'w') as f:
-        f.write("# Auto-generated Database Schema Documentation\n")
-        f.write(f"# Generated at: {raw_schema.get('last_refresh', 'now')}\n")
-        f.write("# Usage: This file is automatically loaded by Smart MCP Server\n\n")
+        f.write("# Auto-generated API Schema Documentation\n")
+        f.write(f"# Generated at: {os.getenv('start_time', 'now')}\n")
+        f.write("# Usage: This file is automatically loaded by Smart MCP Server in API mode\n\n")
         f.write(yaml_content)
 
-    print(f"\n✨ Done! Database schema documentation saved to {output_file}")
-    adapter.close()
+    print(f"\n✨ Done! API schema documentation saved to {output_file}")
 
 if __name__ == "__main__":
     main()

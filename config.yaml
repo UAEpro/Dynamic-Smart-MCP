@@ -1,64 +1,56 @@
 # Smart MCP Server Configuration
 # Edit this file to configure your database connection and LLM settings
 
-# Database Configuration
+# Server Mode: "database" or "api"
+mode: "database"
+
+# Database Configuration (Used when mode is "database")
 database:
   # Connection string format:
   # SQLite: sqlite:///path/to/database.db
   # PostgreSQL: postgresql://user:password@localhost:5432/dbname
   # MySQL: mysql+pymysql://user:password@localhost:3306/dbname
-  # SQL Server: mssql+pyodbc://user:password@localhost/dbname?driver=ODBC+Driver+17+for+SQL+Server
-  # Oracle: oracle+cx_oracle://user:password@localhost:1521/dbname
   connection_string: "sqlite:///example.db"
-  
-  # Schema refresh interval in seconds (0 = manual refresh only)
   schema_cache_ttl: 3600
-  
-  # Maximum rows to return in a single query (safety limit)
   max_rows: 1000
 
-# Database Documentation
-# NOTE: To improve query accuracy, run 'python generate_schema.py'
-# This will create 'database_schema.yaml' which is automatically loaded.
-# The internal 'database_context' section has been moved to that file.
+# API Configuration (Used when mode is "api")
+api:
+  # URL or local path to OpenAPI/Swagger spec (JSON or YAML)
+  spec_source: "https://petstore.swagger.io/v2/swagger.json"
 
-# LLM Configuration for Natural Language to SQL
+  # Allow non-GET requests (POST, PUT, DELETE)
+  # WARNING: Enabling this allows the LLM to modify data!
+  unsafe_mode: false
+
+  # Authentication
+  auth:
+    # Type: "none", "bearer", "api_key"
+    type: "none"
+
+    # For Bearer Token
+    # Use $VAR_NAME to reference environment variable
+    token: "$API_BEARER_TOKEN"
+
+    # For API Key
+    key: "$API_KEY"
+    key_name: "X-API-Key" # Header name or query param name
+    location: "header"    # "header" or "query"
+
+# LLM Configuration
 llm:
-  # Provider: "openai", "openwebui", "anthropic", "custom"
   provider: "openwebui"
-  
-  # API Base URL (for OpenWebUI or custom endpoints)
-  # OpenWebUI example: http://localhost:8080/api
-  # OpenAI: https://api.openai.com/v1
   api_base: "http://localhost:8080/api"
-  
-  # API Key (stored in .env file as LLM_API_KEY)
-  # This is loaded from environment variable for security
   api_key_env: "LLM_API_KEY"
-  
-  # Model name (e.g., "gpt-4", "gpt-3.5-turbo", "llama3", etc.)
   model: "llama3.1:latest"
-  
-  # Temperature (0.0 = deterministic, 1.0 = creative)
   temperature: 0.0
-  
-  # Maximum tokens for response
   max_tokens: 500
 
-# Safety Configuration
+# Safety Configuration (Database specific)
 safety:
-  # Allow only SELECT queries (recommended: true)
   read_only: true
-  
-  # Allow these SQL commands (only used if read_only is false)
   allowed_commands:
     - "SELECT"
-    # Uncomment to allow modifications (USE WITH CAUTION!)
-    # - "INSERT"
-    # - "UPDATE"
-    # - "DELETE"
-  
-  # Blocked keywords (always forbidden)
   blocked_keywords:
     - "DROP"
     - "TRUNCATE"
@@ -69,32 +61,17 @@ safety:
 
 # Security Configuration
 security:
-  # Hide database structure from end users (PRODUCTION: true)
-  # When true: Generic error messages, no column names, no SQL exposed
-  # When false: Detailed errors for debugging (DEVELOPMENT ONLY)
   hide_database_details: true
-  
-  # Show SQL queries in responses (PRODUCTION: false)
   expose_sql: false
-  
-  # Show column names in errors (PRODUCTION: false)
   expose_column_names: false
-  
-  # Show table names in errors (PRODUCTION: false)
   expose_table_names: false
-  
-  # Log detailed errors server-side (always recommended: true)
   log_detailed_errors: true
 
 # MCP Server Configuration
 server:
   name: "smart-mcp-server"
   version: "1.0.0"
-  description: "Intelligent SQL database interface with natural language support"
-  
-  # Enable additional endpoints
+  description: "Intelligent Interface for Database and API"
   enable_schema_endpoint: true
   enable_examples_endpoint: true
-  
-  # Logging level: DEBUG, INFO, WARNING, ERROR
   log_level: "INFO"
